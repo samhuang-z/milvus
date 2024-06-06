@@ -267,7 +267,7 @@ jobs:
           ls -lah
       - name: Upload coverage to Codecov
         # if: ${{ github.repository == 'milvus-io/milvus' }}
-        uses: Wandalen/wretry.action
+        uses: Wandalen/wretry.action@v3.5.0
         with:
           action: codecov/codecov-action@v4
           with: |

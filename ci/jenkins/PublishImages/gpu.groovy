@@ -61,8 +61,10 @@ metadata:
 spec:
   pipelineRef:
     name: milvus-clone-build-push
+  taskRunSpecs:
+    - pipelineTaskName: build-push
+      serviceAccountName: robot-tekton
   taskRunTemplate:
-    serviceAccountName:  robot-tekton
     podTemplate:
       # hostNetwork: true
       securityContext:

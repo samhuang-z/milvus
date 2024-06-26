@@ -62,8 +62,10 @@ metadata:
 spec:
   pipelineRef:
     name: milvus-clone-build-push
+  taskRunSpecs:
+    - pipelineTaskName: build-push
+      serviceAccountName: robot-tekton
   taskRunTemplate:
-    serviceAccountName:  robot-tekton
     podTemplate:
       tolerations:
       - key: "node-role.kubernetes.io/arm"

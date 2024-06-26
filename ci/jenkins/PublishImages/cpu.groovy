@@ -64,11 +64,6 @@ spec:
   taskRunSpecs:
     - pipelineTaskName: build-push
       serviceAccountName: robot-tekton
-  taskRunTemplate:
-    podTemplate:
-      # hostNetwork: true
-      securityContext:
-        fsGroup: 65532
   workspaces:
   - name: shared-data
     volumeClaimTemplate:

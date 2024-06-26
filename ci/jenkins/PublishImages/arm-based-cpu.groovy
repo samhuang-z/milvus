@@ -73,9 +73,6 @@ spec:
         effect: "NoSchedule"
       nodeSelector:
         "kubernetes.io/arch": "arm64"
-        # hostNetwork: true
-      securityContext:
-        fsGroup: 65532
   workspaces:
   - name: shared-data
     volumeClaimTemplate:

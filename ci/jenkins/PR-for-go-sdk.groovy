@@ -80,7 +80,7 @@ pipeline {
                 axes {
                     axis {
                         name 'MILVUS_SERVER_TYPE'
-                        values 'standalone'
+                        values 'standalone', 'distributed'
                     }
                     axis {
                         name 'MILVUS_CLIENT'

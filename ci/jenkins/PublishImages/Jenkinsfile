@@ -1,0 +1,137 @@
+def name = ''
+
+pipeline {
+    options {
+        skipDefaultCheckout true
+    }
+    agent {
+        kubernetes {
+            yaml '''
+        spec:
+          securityContext:
+            runAsUser: 1000 # default UID of jenkins user in agent image
+          containers:
+          - name: kubectl
+            image: bitnami/kubectl:1.27.14
+            command:
+            - cat
+            tty: true
+          - name: tkn
+            image: huangliang1203/tkn:latest
+            command:
+            - cat
+            tty: true
+        '''
+        }
+    }
+    stages {
+        stage('Stage 1') {
+            steps {
+                echo "branch: $env.BRANCH_NAME"
+                echo 'Hello world!'
+            }
+        }
+        stage('build') {
+            steps {
+                container('kubectl') {
+                    script {
+                      // sh 'kubectl get pod'
+                          // "ls -lah".execute().text.eachLine { line ->
+                          //     echo line
+
+                          // }
+
+
+                        def ret = tekton 'revision': "$env.BRANCH_NAME", 'arch':'amd64'
+
+                        name = ret.split('/')[1].split(' ')[0]
+                        // def ret = sh(script: 'kubectl ', returnStdout: true)
+
+                        // def status= sh script: "kubectl get pipelineRun ${name} -n milvus-ci | tail -1 | awk '{print \$3}'", returnStdout: true
+                        //     sleep 3
+                        // echo "status: ${status}"
+                        // while (status.contains("Running")) {
+                        //     echo "in while"
+                        //     sh """
+                        //     kubectl logs -n milvus-ci -l tekton.dev/pipelineRun=${name} -f  --max-log-requests=10  --ignore-errors=true
+                        //         """
+                        //     status= sh script: "kubectl get pipelineRun ${name} -n milvus-ci | tail -1 | awk '{print \$3}'", returnStdout: true
+                        //     echo "status: ${status}"
+                        // }
+                        //     echo "endd status: ${status}"
+                        //
+                        // sh """
+                        // kubectl describe pipelineRun ${name} -n milvus-ci
+                        //     """
+
+                    // "kubectl get pod".execute().text.eachLine { line ->
+                    //     echo line
+                    // }
+                    // "tkn task start hello".execute().text.eachLine { line ->
+                    //     echo line
+                    // }
+                    // sh 'echo hello'
+                    }
+                }
+
+                container('tkn') {
+                    script {
+                        sh """
+                            tkn pipelinerun logs ${name} -f -n milvus-ci
+                        """
+
+                        sh """
+                            tkn pipelinerun describe ${name} -f -n milvus-ci
+                        """
+                    // sh 'tkn task start hello'
+                    // "tkn task start hello".execute().text.eachLine { line ->
+                    //     echo line
+                    // }
+                    }
+                }
+            }
+        }
+    }
+}
+
+def tekton(Map args) {
+    def input = """
+cat << EOF | kubectl create -f -
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: milvus-build-
+  namespace: milvus-ci
+spec:
+  pipelineRef:
+    name: milvus-clone-build-push
+  taskRunTemplate:
+    serviceAccountName:  robot-tekton
+    podTemplate:
+      # hostNetwork: true
+      securityContext:
+        fsGroup: 65532
+  workspaces:
+  - name: shared-data
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+  params:
+  - name: revision
+    value: ${args.revision}
+  - name: arch
+    value: ${args.arch}
+EOF
+"""
+
+    println input
+  // sh "echo $input"
+
+    def ret = sh( script: input, returnStdout: true)
+
+    return ret
+}
